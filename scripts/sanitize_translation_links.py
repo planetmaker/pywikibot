@@ -182,7 +182,9 @@ class BasicBot(
         translations = dict()
         for lang in lang_arr:
             translations = {**translations, **self.get_translation_name(text, lang)}
+        translations[self.site.lang] = self.current_page.title()
         print(translations)
+
 
         for lang, pagename in translations.items():
             print(lang, pagename)
@@ -208,7 +210,7 @@ class BasicBot(
             #text = text_to_add + text
 
         if self.getOption('write'):
-            print("saving" + translations['de'])
+            print("saving page '" + translations['de'] + "'")
             self.put_current(text, summary=self.getOption('summary'))
 
         else:
