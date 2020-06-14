@@ -103,7 +103,7 @@ class BasicBot(
         @param lang: The 2-letter lang indicator
         @type lang string (2 chars)
         """
-        reg_strg = r'\|' + lang + ' ?=([ \w]*)'
+        reg_strg = r'\|' + lang + ' ?=([ \'\w]*)'
         #print(reg_strg)
         rex = re.search(reg_strg, text, re.IGNORECASE)
         #print(rex)
@@ -124,7 +124,7 @@ class BasicBot(
         @param text The page text to look through
         @param translations dictionary of translations
         """
-        reg_strg = '{{trad([\w\s\|\=]*)}}'
+        reg_strg = '{{trad([ \'\w\s\|\=]*)}}'
         rex = re.search(reg_strg, text, re.IGNORECASE | re.MULTILINE)
 
         print("Replacing:")
@@ -138,7 +138,7 @@ class BasicBot(
                     pagename = ""
                 new_strg += '|' + lang.upper() + '=' + pagename + '\n'
 
-            #print("New_strg: ", new_strg)
+            print("New_strg: ", new_strg)
 
             for lang in translations.keys():
                 for (n,str) in enumerate(strgs):
@@ -150,8 +150,8 @@ class BasicBot(
                     new_strg += '|' + s + '\n'
 
             new_strg = '{{Trad\n' + new_strg + '}}'
-            #print(new_strg, '\n')
-            #print('\n with \n \n')
+            print(new_strg, '\n')
+            print('\n with \n \n')
             newtext = re.sub(reg_strg, new_strg, text, flags=re.IGNORECASE | re.MULTILINE)
             #print(newtext)
 
