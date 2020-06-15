@@ -104,59 +104,94 @@ class BasicBot(
         @type lang string (2 chars)
         """
         reg_strg = r'\|' + lang + ' ?=([ \'\w]*)'
+        reg_quality = r'\|' + lang + 's ?= ?([0-9])'
         #print(reg_strg)
-        rex = re.search(reg_strg, text, re.IGNORECASE)
-        #print(rex)
+        rex_lang = re.search(reg_strg, text, re.IGNORECASE)
+        rex_quality = re.search(reg_quality, text, re.IGNORECASE)
         try:
-            strg = rex.group(1)
+            strg = rex_lang.group(1)
+            strg = strg.strip()
+            try:
+                quality = rex_quality.group(1)
+                quality = quality.strip()
+            except:
+                quality = None
         except:
             strg = None
+            quality = None
 
-        #if strg is not None:
-            #print(lang + ': ' + strg)
+        return strg, quality
 
-        ret = dict()
-        ret[lang] = strg
-        return ret
+    def contains_translation(self, text, translations):
+        """
+        @param text             Text to check whether it's a translation string or quality
+        @param translations     The existing translations. We use the keys.
+        """
+        #print("Checking for text to contain translation: ", text)
+        for lang in translations.keys():
+            if lang.upper() in text:
+                return True
+        return False
 
     def replace_translation_template(self, text, translations):
         """
-        @param text The page text to look through
+        @param text         The page text to look through
         @param translations dictionary of translations
         """
         reg_strg = '{{trad([ \'\w\s\|\=]*)}}'
         rex = re.search(reg_strg, text, re.IGNORECASE | re.MULTILINE)
 
         print("Replacing:")
+        newtext = text
+
         try:
-            print(rex.group(1))
+            #print("Regex result: ",rex.group(1))
             strgs = rex.group(1).split('|')
-            print(strgs)
+            for i in range(0,len(strgs)):
+                strgs[i] = strgs[i].strip()
             new_strg = ""
-            for lang,pagename in translations.items():
-                if pagename is None:
+            #print(len(strgs), "Strings: ",strgs)
+            for lang,page in translations.items():
+                if page['name'] is None:
                     pagename = ""
-                new_strg += '|' + lang.upper() + '=' + pagename + '\n'
+                else:
+                    pagename = page['name']
+                new_strg += '|' + lang.upper() + '=' + page['name']
+                if page['quality'] is not None:
+                    new_strg += '|' + lang.upper() + 's=' + page['quality']
+                new_strg += '\n'
+            #print("New_strg translations:\n", new_strg)
+        except:
+            print("No translations found...")
 
-            print("New_strg: ", new_strg)
-
-            for lang in translations.keys():
-                for (n,str) in enumerate(strgs):
-                    if lang.upper() in str:
-                        strgs.pop(n)
-
+        try:
             for s in strgs:
-                if len(s) > 2:
-                    new_strg += '|' + s + '\n'
+                #print("Checking s: ", s)
+                if len(s) == 0:
+                    #print("Droppling string length 0")
+                    continue
+                elif self.contains_translation(s, translations):
+                    #print("Ignoring s in lang.upper(): ", s)
+                    continue
+                elif (s == '\n' or s == ' '):
+                    #print("Ignoring s in \\n or ' ': ",s)
+                    continue
+                #print("Adding s: ", s)
+                new_strg += '|' + s + '\n'
+        except:
+            print("No non-language items for template found")
+            pass
 
+        print('\n')
+        try:
             new_strg = '{{Trad\n' + new_strg + '}}'
-            print(new_strg, '\n')
+            print(text, '\n')
             print('\n with \n \n')
             newtext = re.sub(reg_strg, new_strg, text, flags=re.IGNORECASE | re.MULTILINE)
-            #print(newtext)
+            print(newtext)
 
         except:
-            print("no text matched:", rex)
+            print("Nothing. No text matched:", rex)
 
         return newtext
 
@@ -181,15 +216,18 @@ class BasicBot(
 
         translations = dict()
         for lang in lang_arr:
-            translations = {**translations, **self.get_translation_name(text, lang)}
-        translations[self.site.lang] = self.current_page.title()
+            # translations = {**translations, **self.get_translation_name(text, lang)}
+            name, quality = self.get_translation_name(text, lang)
+            translations[lang] = {'name':name, 'quality':quality}
+        translations[self.site.lang]['name'] = self.current_page.title()
         print(translations)
 
 
-        for lang, pagename in translations.items():
-            print(lang, pagename)
-            if pagename is not None:
-                pagelink = '[[' + lang + ':' + pagename + ']]'
+        for lang, page in translations.items():
+            print(page)
+            print(lang, page)
+            if page['name'] is not None and page['name'] != "":
+                pagelink = '[[' + lang + ':' + page['name'] + ']]'
                 if pagelink not in text:
                     text = text + '\n' + pagelink
                     print(pagelink)
@@ -210,7 +248,7 @@ class BasicBot(
             #text = text_to_add + text
 
         if self.getOption('write'):
-            print("saving page '" + translations['de'] + "'")
+            print("saving page '" + translations['de']['name'] + "'")
             self.put_current(text, summary=self.getOption('summary'))
 
         else:
