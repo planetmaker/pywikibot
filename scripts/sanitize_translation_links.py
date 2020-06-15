@@ -247,14 +247,16 @@ class BasicBot(
         try:
             new_trad_template = '{{Trad\n' + new_trad_template + '}}'
             if self.getOption('info'):
+                print("=== OLD " +self.current_page.title() + " =========================================")
                 print(text, '\n')
-                print('\n with \n \n')
             if rex is not None: # in this case, there is no translation template. Add it
                 newtext = re.sub(reg_strg, new_trad_template, text, flags=re.IGNORECASE | re.MULTILINE)
             else:
                 newtext = new_trad_template + text
             if self.getOption('info'):
+                print("=== NEW " +self.current_page.title() + " =========================================")
                 print(newtext)
+                print("=== END " +self.current_page.title() + " =========================================")
         except:
             pass
             # print("Nothing changed", rex)
