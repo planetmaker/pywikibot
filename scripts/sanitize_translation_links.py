@@ -89,6 +89,7 @@ class BasicBot(
             'text': 'Test',  # add this text from option. 'Test' is default
             'top': False,  # append text on top of the page
             'write': False, # write the page
+            'info': False, # print further debug output
         })
 
         # call initializer of the super class
@@ -197,7 +198,8 @@ class BasicBot(
         reg_strg = '{{trad([ \'’\w\-_\s\|\=:]*)}}'
         rex = re.search(reg_strg, text, re.IGNORECASE | re.MULTILINE)
 
-        #print("regex result for trad template: ", rex)
+        if self.getOption('info'):
+            print("regex result for trad template: ", rex)
 
         #print("Replacing:")
         newtext = text
@@ -210,12 +212,14 @@ class BasicBot(
             else:
                 pagename = page['name']
             new_trad_template += '|' + lang.upper() + '=' + pagename
-            #print('pagename done:' ,lang)
+            if self.getOption('info'):
+                print('pagename done:' ,lang)
             if page['quality'] is not None:
                 new_trad_template += '|' + lang.upper() + 's=' + page['quality']
             new_trad_template += '\n'
                 #print('Done:', lang)
-            #print("new_trad_template translations:\n", new_trad_template)
+            if self.getOption('info'):
+                print("new_trad_template translations:\n", new_trad_template)
 
         try:
             strgs = rex.group(1).split('|')
@@ -232,7 +236,8 @@ class BasicBot(
                 elif (s == '\n' or s == ' '):
                     #print("Ignoring s in \\n or ' ': ",s)
                     continue
-                #print("Adding s: ", s)
+                if self.getOption('info'):
+                    print("Adding s: ", s)
                 new_trad_template += '|' + s + '\n'
         except:
             print(self.current_page.title() + ": No {{trad}} template found.")
@@ -241,18 +246,51 @@ class BasicBot(
         #print('\n')
         try:
             new_trad_template = '{{Trad\n' + new_trad_template + '}}'
-            #print(text, '\n')
-            #print('\n with \n \n')
+            if self.getOption('info'):
+                print(text, '\n')
+                print('\n with \n \n')
             if rex is not None: # in this case, there is no translation template. Add it
                 newtext = re.sub(reg_strg, new_trad_template, text, flags=re.IGNORECASE | re.MULTILINE)
             else:
                 newtext = new_trad_template + text
-            #print(newtext)
+            if self.getOption('info'):
+                print(newtext)
         except:
             pass
             # print("Nothing changed", rex)
 
         return newtext
+
+    def remove_wiki_language_links(self, text, translations):
+        #print(lang, page)
+        for lang, pagename in translations.items():
+            reg_strg = r'\[\[' + lang + ':' + name_regex + '\]\](\n)?'
+            text = re.sub(reg_strg, '', text, flags=re.IGNORECASE)
+        return text
+
+    def add_wiki_language_links(self, text, translations):
+        for lang, page in translations.items():
+            if page['name'] is not None and page['name'] != "":
+                pagelink = '[[' + lang + ':' + page['name'] + ']]'
+                text = text + '\n' + pagelink
+                #print(pagelink)
+        return text
+
+    def get_pagename_translations(self, text):
+        lang_arr = ["de", "en", "es", "fr", "ru"]
+        translations = dict()
+
+        for lang in lang_arr:
+            name, quality = self.get_translation_name(text, lang)
+            translations[lang] = {'name':name, 'quality':quality}
+
+        # make sure we use the correct name for the page we edit
+        translations[self.site.lang]['name'] = self.current_page.title()
+
+        if self.getOption('info'):
+            print(translations)
+
+        return translations
 
 
 
@@ -267,32 +305,13 @@ class BasicBot(
         # If you find out that you do not want to edit this page, just return.
         # Example: This puts Text on a page.
 
-        # Retrieve your private option
-        # Use your own text or use the default 'Test'
-        text_to_add = self.getOption('text')
-
-        lang_arr = ["de", "en", "es", "fr", "ru"]
-
-        translations = dict()
-        for lang in lang_arr:
-            # translations = {**translations, **self.get_translation_name(text, lang)}
-            name, quality = self.get_translation_name(text, lang)
-            translations[lang] = {'name':name, 'quality':quality}
-        translations[self.site.lang]['name'] = self.current_page.title()
-        #print(translations)
-
-
-        for lang, page in translations.items():
-            #print(page)
-            #print(lang, page)
-            reg_strg = r'\[\[' + lang + ':' + name_regex + '\]\](\n)?'
-            text = re.sub(reg_strg, '', text, flags=re.IGNORECASE)
-            if page['name'] is not None and page['name'] != "":
-                pagelink = '[[' + lang + ':' + page['name'] + ']]'
-                text = text + '\n' + pagelink
-                #print(pagelink)
+        translations = self.get_pagename_translations(text)
 
         text = self.replace_translation_template(text, translations)
+
+        # remove old ones and add new ones at bottom of page
+        text = self.remove_wiki_language_links(text, translations)
+        text = self.add_wiki_language_links(text, translations)
 
         #print("Current page to write:")
         #print(text)
