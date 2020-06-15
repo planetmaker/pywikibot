@@ -103,7 +103,7 @@ class BasicBot(
         @param lang: The 2-letter lang indicator
         @type lang string (2 chars)
         """
-        reg_strg = r'\|' + lang + ' ?=([ \'\w]*)'
+        reg_strg = r'\|' + lang + ' ?=([ \'\-\w]*)'
         reg_quality = r'\|' + lang + 's ?= ?([0-9])'
         #print(reg_strg)
         rex_lang = re.search(reg_strg, text, re.IGNORECASE)
@@ -138,7 +138,7 @@ class BasicBot(
         @param text         The page text to look through
         @param translations dictionary of translations
         """
-        reg_strg = '{{trad([ \'\w\s\|\=]*)}}'
+        reg_strg = '{{trad([ \'\w\-\s\|\=]*)}}'
         rex = re.search(reg_strg, text, re.IGNORECASE | re.MULTILINE)
 
         print("Replacing:")
