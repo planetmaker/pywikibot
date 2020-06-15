@@ -283,7 +283,7 @@ class BasicBot(
         for lang, page in translations.items():
             print(page)
             print(lang, page)
-            reg_strg = r'\[\[' + lang + ':([ \'\-_\w:]*)\]\]'
+            reg_strg = r'\[\[' + lang + ':([ \'\-_\w:]*)\]\](\n)?'
             text = re.sub(reg_strg, '', text, flags=re.IGNORECASE)
             if page['name'] is not None and page['name'] != "":
                 pagelink = '[[' + lang + ':' + page['name'] + ']]'
