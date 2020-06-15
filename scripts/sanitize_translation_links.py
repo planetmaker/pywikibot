@@ -104,13 +104,15 @@ class BasicBot(
         @type lang string (2 chars)
 
         """
-        reg_strg = r'\[\[' + lang + ':([ \'\-_\w]*)\]\]'
+        reg_strg = r'\[\[' + lang + ':([ \'\-_:\w]*)\]\]'
         wiki_lang = re.search(reg_strg, text, re.IGNORECASE)
 
         try:
             strg = wiki_lang.group(1)
             strg = strg.strip()
         except:
+            strg = None
+        if strg == '':
             strg = None
 
         return strg, None
@@ -125,7 +127,7 @@ class BasicBot(
 
         """
         # Search for the {{trad template and extract that}}
-        reg_strg = r'\|' + lang + ' ?=([ \'\-_\w]*)'
+        reg_strg = r'\|' + lang + ' ?=([ \'\-_:\w]*)'
         reg_quality = r'\|' + lang + 's ?= ?([0-9])'
         trad_lang = re.search(reg_strg, text, re.IGNORECASE)
         trad_quality = re.search(reg_quality, text, re.IGNORECASE)
@@ -141,6 +143,8 @@ class BasicBot(
         except:
             strg = None
             quality = None
+        if strg == '':
+            strg = None
 
         return strg, quality
 
@@ -156,7 +160,7 @@ class BasicBot(
         trad_name, quality = self.get_translation_name_trad(text, lang)
         wiki_name, w_quality = self.get_translation_name_wikilink(text, lang)
 
-        #print("Translations: ", trad_name, wiki_name, quality)
+        print("Translations: ", trad_name, wiki_name, quality)
 
         name = trad_name
         if trad_name is None:
@@ -188,7 +192,7 @@ class BasicBot(
         @param text         The page text to look through
         @param translations dictionary of translations
         """
-        reg_strg = '{{trad([ \'\w\-_\s\|\=]*)}}'
+        reg_strg = '{{trad([ \'\w\-_\s\|\=:]*)}}'
         rex = re.search(reg_strg, text, re.IGNORECASE | re.MULTILINE)
 
         print("regex result for trad template: ", rex)
@@ -279,10 +283,9 @@ class BasicBot(
         for lang, page in translations.items():
             print(page)
             print(lang, page)
+            reg_strg = r'\[\[' + lang + ':([ \'\-_\w:]*)\]\]'
+            text = re.sub(reg_strg, '', text, flags=re.IGNORECASE)
             if page['name'] is not None and page['name'] != "":
-                reg_strg = r'\[\[' + lang + ':([ \'\-_\w]*)\]\]'
-                text = re.sub(reg_strg, '', text, flags=re.IGNORECASE)
-
                 pagelink = '[[' + lang + ':' + page['name'] + ']]'
                 text = text + '\n' + pagelink
                 print(pagelink)
