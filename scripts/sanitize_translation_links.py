@@ -152,14 +152,17 @@ class BasicBot(
             new_strg = ""
             #print(len(strgs), "Strings: ",strgs)
             for lang,page in translations.items():
+                #print("Lang: ", lang, page)
                 if page['name'] is None:
                     pagename = ""
                 else:
                     pagename = page['name']
-                new_strg += '|' + lang.upper() + '=' + page['name']
+                new_strg += '|' + lang.upper() + '=' + pagename
+                #print('pagename done:' ,lang)
                 if page['quality'] is not None:
                     new_strg += '|' + lang.upper() + 's=' + page['quality']
                 new_strg += '\n'
+                #print('Done:', lang)
             #print("New_strg translations:\n", new_strg)
         except:
             print("No translations found...")
