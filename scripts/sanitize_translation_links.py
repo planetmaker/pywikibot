@@ -47,6 +47,8 @@ import re
 # with the parameter -help.
 docuReplacements = {'&params;': pagegenerators.parameterHelp}  # noqa: N816
 
+name_regex = '([ \'’\-_:\w]*)'
+
 
 class BasicBot(
     # Refer pywikobot.bot for generic bot classes
@@ -104,7 +106,7 @@ class BasicBot(
         @type lang string (2 chars)
 
         """
-        reg_strg = r'\[\[' + lang + ':([ \'\-_:\w]*)\]\]'
+        reg_strg = r'\[\[' + lang + ':' + name_regex + '\]\]'
         wiki_lang = re.search(reg_strg, text, re.IGNORECASE)
 
         try:
@@ -127,7 +129,7 @@ class BasicBot(
 
         """
         # Search for the {{trad template and extract that}}
-        reg_strg = r'\|' + lang + ' ?=([ \'\-_:\w]*)'
+        reg_strg = r'\|' + lang + ' ?=' + name_regex
         reg_quality = r'\|' + lang + 's ?= ?([0-9])'
         trad_lang = re.search(reg_strg, text, re.IGNORECASE)
         trad_quality = re.search(reg_quality, text, re.IGNORECASE)
@@ -192,7 +194,7 @@ class BasicBot(
         @param text         The page text to look through
         @param translations dictionary of translations
         """
-        reg_strg = '{{trad([ \'\w\-_\s\|\=:]*)}}'
+        reg_strg = '{{trad([ \'’\w\-_\s\|\=:]*)}}'
         rex = re.search(reg_strg, text, re.IGNORECASE | re.MULTILINE)
 
         #print("regex result for trad template: ", rex)
@@ -283,7 +285,7 @@ class BasicBot(
         for lang, page in translations.items():
             #print(page)
             #print(lang, page)
-            reg_strg = r'\[\[' + lang + ':([ \'\-_\w:]*)\]\](\n)?'
+            reg_strg = r'\[\[' + lang + ':' + name_regex + '\]\](\n)?'
             text = re.sub(reg_strg, '', text, flags=re.IGNORECASE)
             if page['name'] is not None and page['name'] != "":
                 pagelink = '[[' + lang + ':' + page['name'] + ']]'
