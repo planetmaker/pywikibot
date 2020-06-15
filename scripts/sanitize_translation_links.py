@@ -95,24 +95,46 @@ class BasicBot(
         # assign the generator to the bot
         self.generator = generator
 
-    def get_translation_name(self, text, lang):
+    def get_translation_name_wikilink(self, text, lang):
         """
         @param text: The page text to look through
         @type generator: text
 
         @param lang: The 2-letter lang indicator
         @type lang string (2 chars)
+
         """
+        reg_strg = r'\[\[' + lang + ':([ \'\-\w]*)\]\}'
+        wiki_lang = re.search(reg_strg, text, re.IGNORECASE)
+
+        try:
+            strg = wiki_lang.group(1)
+            strg = strg.strip()
+        except:
+            strg = None
+
+        return strg, None
+
+    def get_translation_name_trad(self, text, lang):
+        """
+        @param text: The page text to look through
+        @type generator: text
+
+        @param lang: The 2-letter lang indicator
+        @type lang string (2 chars)
+
+        """
+        # Search for the {{trad template and extract that}}
         reg_strg = r'\|' + lang + ' ?=([ \'\-\w]*)'
         reg_quality = r'\|' + lang + 's ?= ?([0-9])'
-        #print(reg_strg)
-        rex_lang = re.search(reg_strg, text, re.IGNORECASE)
-        rex_quality = re.search(reg_quality, text, re.IGNORECASE)
+        trad_lang = re.search(reg_strg, text, re.IGNORECASE)
+        trad_quality = re.search(reg_quality, text, re.IGNORECASE)
+
         try:
-            strg = rex_lang.group(1)
+            strg = trad_lang.group(1)
             strg = strg.strip()
             try:
-                quality = rex_quality.group(1)
+                quality = trad_quality.group(1)
                 quality = quality.strip()
             except:
                 quality = None
@@ -121,6 +143,30 @@ class BasicBot(
             quality = None
 
         return strg, quality
+
+    def get_translation_name(self, text, lang):
+        """
+        @param text: The page text to look through
+        @type generator: text
+
+        @param lang: The 2-letter lang indicator
+        @type lang string (2 chars)
+
+        """
+        trad_name, quality = self.get_translation_name_trad(text, lang)
+        wiki_name, w_quality = self.get_translation_name_wikilink(text, lang)
+
+        if trad_name is None:
+            name = wiki_name
+        elif wiki_name is None:
+            name = trad_name
+        elif trad_name is not None and wiki_name is not None and trad_name != wiki_name:
+            print("WARNING: different pages linked for ", lang, ":")
+            print(trad_name, " <-> ", wiki_name)
+            name = trad_name
+
+        return name, quality
+
 
     def contains_translation(self, text, translations):
         """
