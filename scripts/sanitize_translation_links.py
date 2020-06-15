@@ -156,6 +156,9 @@ class BasicBot(
         trad_name, quality = self.get_translation_name_trad(text, lang)
         wiki_name, w_quality = self.get_translation_name_wikilink(text, lang)
 
+        #print("Translations: ", trad_name, wiki_name, quality)
+
+        name = trad_name
         if trad_name is None:
             name = wiki_name
         elif wiki_name is None:
@@ -164,6 +167,7 @@ class BasicBot(
             print("WARNING: different pages linked for ", lang, ":")
             print(trad_name, " <-> ", wiki_name)
             name = trad_name
+
 
         return name, quality
 
@@ -277,7 +281,7 @@ class BasicBot(
             print(lang, page)
             if page['name'] is not None and page['name'] != "":
                 reg_strg = r'\[\[' + lang + ':([ \'\-_\w]*)\]\]'
-                re.sub(reg_strg, '', text, flags=re.IGNORECASE)
+                text = re.sub(reg_strg, '', text, flags=re.IGNORECASE)
 
                 pagelink = '[[' + lang + ':' + page['name'] + ']]'
                 text = text + '\n' + pagelink
