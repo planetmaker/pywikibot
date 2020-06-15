@@ -104,7 +104,7 @@ class BasicBot(
         @type lang string (2 chars)
 
         """
-        reg_strg = r'\[\[' + lang + ':([ \'\-\w]*)\]\}'
+        reg_strg = r'\[\[' + lang + ':([ \'\-_\w]*)\]\]'
         wiki_lang = re.search(reg_strg, text, re.IGNORECASE)
 
         try:
@@ -125,7 +125,7 @@ class BasicBot(
 
         """
         # Search for the {{trad template and extract that}}
-        reg_strg = r'\|' + lang + ' ?=([ \'\-\w]*)'
+        reg_strg = r'\|' + lang + ' ?=([ \'\-_\w]*)'
         reg_quality = r'\|' + lang + 's ?= ?([0-9])'
         trad_lang = re.search(reg_strg, text, re.IGNORECASE)
         trad_quality = re.search(reg_quality, text, re.IGNORECASE)
@@ -184,7 +184,7 @@ class BasicBot(
         @param text         The page text to look through
         @param translations dictionary of translations
         """
-        reg_strg = '{{trad([ \'\w\-\s\|\=]*)}}'
+        reg_strg = '{{trad([ \'\w\-_\s\|\=]*)}}'
         rex = re.search(reg_strg, text, re.IGNORECASE | re.MULTILINE)
 
         print("regex result for trad template: ", rex)
@@ -276,10 +276,12 @@ class BasicBot(
             print(page)
             print(lang, page)
             if page['name'] is not None and page['name'] != "":
+                reg_strg = r'\[\[' + lang + ':([ \'\-_\w]*)\]\]'
+                re.sub(reg_strg, '', text, flags=re.IGNORECASE)
+
                 pagelink = '[[' + lang + ':' + page['name'] + ']]'
-                if pagelink not in text:
-                    text = text + '\n' + pagelink
-                    print(pagelink)
+                text = text + '\n' + pagelink
+                print(pagelink)
 
         text = self.replace_translation_template(text, translations)
 
