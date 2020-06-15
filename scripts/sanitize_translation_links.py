@@ -187,33 +187,30 @@ class BasicBot(
         reg_strg = '{{trad([ \'\w\-\s\|\=]*)}}'
         rex = re.search(reg_strg, text, re.IGNORECASE | re.MULTILINE)
 
+        print("regex result for trad template: ", rex)
+
         print("Replacing:")
         newtext = text
+        new_trad_template = ""
+
+        for lang,page in translations.items():
+            #print("Lang: ", lang, page)
+            if page['name'] is None:
+                pagename = ""
+            else:
+                pagename = page['name']
+            new_trad_template += '|' + lang.upper() + '=' + pagename
+            #print('pagename done:' ,lang)
+            if page['quality'] is not None:
+                new_trad_template += '|' + lang.upper() + 's=' + page['quality']
+            new_trad_template += '\n'
+                #print('Done:', lang)
+            #print("new_trad_template translations:\n", new_trad_template)
 
         try:
-            #print("Regex result: ",rex.group(1))
             strgs = rex.group(1).split('|')
             for i in range(0,len(strgs)):
                 strgs[i] = strgs[i].strip()
-            new_strg = ""
-            #print(len(strgs), "Strings: ",strgs)
-            for lang,page in translations.items():
-                #print("Lang: ", lang, page)
-                if page['name'] is None:
-                    pagename = ""
-                else:
-                    pagename = page['name']
-                new_strg += '|' + lang.upper() + '=' + pagename
-                #print('pagename done:' ,lang)
-                if page['quality'] is not None:
-                    new_strg += '|' + lang.upper() + 's=' + page['quality']
-                new_strg += '\n'
-                #print('Done:', lang)
-            #print("New_strg translations:\n", new_strg)
-        except:
-            print("No translations found...")
-
-        try:
             for s in strgs:
                 #print("Checking s: ", s)
                 if len(s) == 0:
@@ -226,17 +223,20 @@ class BasicBot(
                     #print("Ignoring s in \\n or ' ': ",s)
                     continue
                 #print("Adding s: ", s)
-                new_strg += '|' + s + '\n'
+                new_trad_template += '|' + s + '\n'
         except:
-            print("No non-language items for template found")
+            print("No {{trad}} template found.")
             pass
 
         print('\n')
         try:
-            new_strg = '{{Trad\n' + new_strg + '}}'
+            new_trad_template = '{{Trad\n' + new_trad_template + '}}'
             print(text, '\n')
             print('\n with \n \n')
-            newtext = re.sub(reg_strg, new_strg, text, flags=re.IGNORECASE | re.MULTILINE)
+            if rex is not None: # in this case, there is no translation template. Add it
+                newtext = re.sub(reg_strg, new_trad_template, text, flags=re.IGNORECASE | re.MULTILINE)
+            else:
+                newtext = new_trad_template + text
             print(newtext)
 
         except:
