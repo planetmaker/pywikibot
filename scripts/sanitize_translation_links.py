@@ -160,7 +160,7 @@ class BasicBot(
         trad_name, quality = self.get_translation_name_trad(text, lang)
         wiki_name, w_quality = self.get_translation_name_wikilink(text, lang)
 
-        print("Translations: ", trad_name, wiki_name, quality)
+        #print("Translations: ", trad_name, wiki_name, quality)
 
         name = trad_name
         if trad_name is None:
@@ -168,7 +168,7 @@ class BasicBot(
         elif wiki_name is None:
             name = trad_name
         elif trad_name is not None and wiki_name is not None and trad_name != wiki_name:
-            print("WARNING: different pages linked for ", lang, ":")
+            print("WARNING: " + self.current_page.title()  + " different pages linked for ", lang, ":")
             print(trad_name, " <-> ", wiki_name)
             name = trad_name
 
@@ -195,9 +195,9 @@ class BasicBot(
         reg_strg = '{{trad([ \'\w\-_\s\|\=:]*)}}'
         rex = re.search(reg_strg, text, re.IGNORECASE | re.MULTILINE)
 
-        print("regex result for trad template: ", rex)
+        #print("regex result for trad template: ", rex)
 
-        print("Replacing:")
+        #print("Replacing:")
         newtext = text
         new_trad_template = ""
 
@@ -233,22 +233,22 @@ class BasicBot(
                 #print("Adding s: ", s)
                 new_trad_template += '|' + s + '\n'
         except:
-            print("No {{trad}} template found.")
+            print(self.current_page.title() + ": No {{trad}} template found.")
             pass
 
-        print('\n')
+        #print('\n')
         try:
             new_trad_template = '{{Trad\n' + new_trad_template + '}}'
-            print(text, '\n')
-            print('\n with \n \n')
+            #print(text, '\n')
+            #print('\n with \n \n')
             if rex is not None: # in this case, there is no translation template. Add it
                 newtext = re.sub(reg_strg, new_trad_template, text, flags=re.IGNORECASE | re.MULTILINE)
             else:
                 newtext = new_trad_template + text
-            print(newtext)
-
+            #print(newtext)
         except:
-            print("Nothing. No text matched:", rex)
+            pass
+            # print("Nothing changed", rex)
 
         return newtext
 
@@ -277,22 +277,22 @@ class BasicBot(
             name, quality = self.get_translation_name(text, lang)
             translations[lang] = {'name':name, 'quality':quality}
         translations[self.site.lang]['name'] = self.current_page.title()
-        print(translations)
+        #print(translations)
 
 
         for lang, page in translations.items():
-            print(page)
-            print(lang, page)
+            #print(page)
+            #print(lang, page)
             reg_strg = r'\[\[' + lang + ':([ \'\-_\w:]*)\]\](\n)?'
             text = re.sub(reg_strg, '', text, flags=re.IGNORECASE)
             if page['name'] is not None and page['name'] != "":
                 pagelink = '[[' + lang + ':' + page['name'] + ']]'
                 text = text + '\n' + pagelink
-                print(pagelink)
+                #print(pagelink)
 
         text = self.replace_translation_template(text, translations)
 
-        print("Current page to write:")
+        #print("Current page to write:")
         #print(text)
 
         #if self.getOption('replace'):
