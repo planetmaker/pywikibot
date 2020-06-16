@@ -47,7 +47,8 @@ import re
 # with the parameter -help.
 docuReplacements = {'&params;': pagegenerators.parameterHelp}  # noqa: N816
 
-name_regex = '([ \'’\-_:\w]*)'
+name_chars = ' \'’\-_:\w\d'
+name_regex = '([' + name_chars + ']*)'
 
 
 class BasicBot(
@@ -195,7 +196,7 @@ class BasicBot(
         @param text         The page text to look through
         @param translations dictionary of translations
         """
-        reg_strg = '{{trad([ \'’\w\-_\s\|\=:]*)}}'
+        reg_strg = '{{trad([' + name_chars + ',\.\s\|\=]*)?}}'
         rex = re.search(reg_strg, text, re.IGNORECASE | re.MULTILINE)
 
         if self.getOption('info'):
@@ -212,14 +213,14 @@ class BasicBot(
             else:
                 pagename = page['name']
             new_trad_template += '|' + lang.upper() + '=' + pagename
-            if self.getOption('info'):
-                print('pagename done:' ,lang)
             if page['quality'] is not None:
                 new_trad_template += '|' + lang.upper() + 's=' + page['quality']
             new_trad_template += '\n'
-                #print('Done:', lang)
             if self.getOption('info'):
-                print("new_trad_template translations:\n", new_trad_template)
+                print('pagename done:' ,lang)
+
+        if self.getOption('info'):
+            print("new_trad_template translations:\n", new_trad_template)
 
         try:
             strgs = rex.group(1).split('|')
@@ -250,7 +251,7 @@ class BasicBot(
                 print("=== OLD " +self.current_page.title() + " =========================================")
                 print(text, '\n')
             if rex is not None: # in this case, there is no translation template. Add it
-                newtext = re.sub(reg_strg, new_trad_template, text, flags=re.IGNORECASE | re.MULTILINE)
+                newtext = re.sub(reg_strg, new_trad_template, text, flags=(re.IGNORECASE | re.MULTILINE))
             else:
                 newtext = new_trad_template + text
             if self.getOption('info'):
