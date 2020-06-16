@@ -287,6 +287,8 @@ class BasicBot(
 
     def add_wiki_language_links(self, text, translations):
         for lang, page in translations.items():
+            if lang == self.site.lang:
+                continue
             if page['name'] is not None and page['name'] != "":
                 pagelink = '[[' + lang + ':' + page['name'] + ']]'
                 text = text + '\n' + pagelink
