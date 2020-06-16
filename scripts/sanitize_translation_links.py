@@ -49,6 +49,7 @@ docuReplacements = {'&params;': pagegenerators.parameterHelp}  # noqa: N816
 
 name_chars = ' \'’\-_:\w\d'
 name_regex = '([' + name_chars + ']*)'
+trad_regex = '{{trad([' + name_chars + ',\.\s\|\=]*)?}}'
 
 
 class BasicBot(
@@ -191,19 +192,20 @@ class BasicBot(
                 return True
         return False
 
-    def replace_translation_template(self, text, translations):
+    def create_new_trad_template(self, text, translations):
         """
-        @param text         The page text to look through
-        @param translations dictionary of translations
-        """
-        reg_strg = '{{trad([' + name_chars + ',\.\s\|\=]*)?}}'
-        rex = re.search(reg_strg, text, re.IGNORECASE | re.MULTILINE)
+        text : string
+            Text of the entire page
+        translations: dict of translations
 
+        returns trad_template, replacing_old
+            string of new {{trad}} template and boolean whether we replace an old template
+
+        """
+        rex = re.search(trad_regex, text, re.IGNORECASE | re.MULTILINE)
         if self.getOption('info'):
             print("regex result for trad template: ", rex)
 
-        #print("Replacing:")
-        newtext = text
         new_trad_template = ""
 
         for lang,page in translations.items():
@@ -244,23 +246,35 @@ class BasicBot(
             print(self.current_page.title() + ": No {{trad}} template found.")
             pass
 
-        #print('\n')
-        try:
-            new_trad_template = '{{Trad\n' + new_trad_template + '}}'
-            if self.getOption('info'):
-                print("=== OLD " +self.current_page.title() + " =========================================")
-                print(text, '\n')
-            if rex is not None: # in this case, there is no translation template. Add it
-                newtext = re.sub(reg_strg, new_trad_template, text, flags=(re.IGNORECASE | re.MULTILINE))
-            else:
-                newtext = new_trad_template + text
-            if self.getOption('info'):
-                print("=== NEW " +self.current_page.title() + " =========================================")
-                print(newtext)
-                print("=== END " +self.current_page.title() + " =========================================")
-        except:
-            pass
-            # print("Nothing changed", rex)
+        new_trad_template = '{{Trad\n' + new_trad_template + '}}'
+        replacing = (rex is not None)
+
+        return new_trad_template, replacing
+
+    def replace_translation_template(self, text, translations):
+        """
+        @param text         The page text to look through
+        @param translations dictionary of translations
+        """
+        reg_strg = '{{trad([' + name_chars + ',\.\s\|\=]*)?}}'
+        rex = re.search(reg_strg, text, re.IGNORECASE | re.MULTILINE)
+
+        if self.getOption('info'):
+            print("regex result for trad template: ", rex)
+
+        new_trad_template,replacing = self.create_new_trad_template(text, translations)
+
+        if self.getOption('info'):
+            print("=== OLD " +self.current_page.title() + " =========================================")
+            print(text, '\n')
+        if replacing: # in this case, there is no translation template. Add it
+            newtext = re.sub(reg_strg, new_trad_template, text, flags=(re.IGNORECASE | re.MULTILINE))
+        else:
+            newtext = new_trad_template + text
+        if self.getOption('info'):
+            print("=== NEW " +self.current_page.title() + " =========================================")
+            print(newtext)
+            print("=== END " +self.current_page.title() + " =========================================")
 
         return newtext
 
