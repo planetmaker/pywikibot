@@ -47,7 +47,7 @@ import re
 # with the parameter -help.
 docuReplacements = {'&params;': pagegenerators.parameterHelp}  # noqa: N816
 
-name_chars = ' \'’\-_:\w\d'
+name_chars = ' \'’\-_:\w\d\(\)'
 name_regex = '([' + name_chars + ']*)'
 trad_regex = '{{trad([' + name_chars + ',\.\s\|\=]*)?}}'
 
