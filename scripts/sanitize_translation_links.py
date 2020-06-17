@@ -346,7 +346,7 @@ class BasicBot(
             #text = text_to_add + text
 
         if self.getOption('write'):
-            print("saving page '" + translations['de']['name'] + "'")
+            print("saving page '" + translations[self.site.lang]['name'] + "'")
             self.put_current(text, summary=self.getOption('summary'))
 
         else:
