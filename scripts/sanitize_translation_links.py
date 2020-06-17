@@ -290,8 +290,10 @@ class BasicBot(
             if lang == self.site.lang:
                 continue
             if page['name'] is not None and page['name'] != "":
+                if text[-1] != '\n':
+                    text = text + '\n'
                 pagelink = '[[' + lang + ':' + page['name'] + ']]'
-                text = text + '\n' + pagelink
+                text = text + pagelink + '\n'
                 #print(pagelink)
         return text
 
